@@ -1,0 +1,189 @@
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const { ExpressPeerServer } = require("peer");
+const cors = require("cors");
+
+const app = express();
+const server = http.createServer(app);
+
+const io = require("socket.io")(server, {
+	cors: {
+		origin: "*",
+	},
+});
+
+// Set up PeerJS server
+const peerServer = ExpressPeerServer(server, {
+	debug: true,
+});
+
+// Add middleware for PeerJS server
+app.use("/peerjs", peerServer);
+
+// Listen for incoming connections
+io.on("connection", (socket) => {
+	console.log("User connected:", socket.id);
+
+	// Listen for peer-to-peer connections
+	socket.on("peer-connect", (peerId) => {
+		console.log("Peer connected:", peerId);
+
+		// Send a message to the remote peer to initiate the connection
+		socket.to(peerId).emit("peer-initiate", socket.id);
+	});
+
+	// Listen for a response from the remote peer
+	socket.on("peer-response", (peerId) => {
+		console.log("Peer responded:", peerId);
+
+		// Send a message to the remote peer to confirm the connection
+		socket.to(peerId).emit("peer-confirm", socket.id);
+	});
+});
+
+// Start the server
+const port = process.env.PORT || 8080;
+server.listen(port, () => {
+	console.log(`Server started on port ${port}`);
+});
+
+
+
+
+	// const call = (remotePeerId) => {
+	// 	const getUserMedia =
+	// 		navigator.getUserMedia ||
+	// 		navigator.webkitGetUserMedia ||
+	// 		navigator.mozGetUserMedia;
+	// 	getUserMedia(
+	// 		{ video: true, audio: true },
+	// 		function (stream) {
+	// 			localVideo.current.srcObject = stream;
+	// 			localVideo.current.play();
+	// 			console.log(localVideo);
+	// 			var call = currenPeerRef.current.call(remotePeerId, stream);
+	// 			call.on("stream", function (remoteStream) {
+	// 				// Show stream in some video/canvas element.
+	// 				remoteVideo.current.srcObject = remoteStream;
+	// 				remoteVideo.current.play();
+	// 			});
+	// 		},
+	// 		function (err) {
+	// 			console.log("Failed to get local stream", err);
+	// 		}
+	// 	);
+	// };
+
+
+
+
+	return (
+		<div>
+			<div className='header'>
+				<div className='logo'>
+					<div className='header__back'>
+						<i className='fas fa-angle-left' />
+					</div>
+					<h3>Video Chat</h3>
+				</div>
+			</div>
+			<div className='main'>
+				<div className='main__left'>
+					<div className='videos__group'>
+						<div id='video-grid'>
+							<div>
+								<input
+									type='text'
+									value={remotepeerValue}
+									onChange={(e) => setRemotePeerValue(e.target.value)}
+								/>
+								<button onClick={() => call(remotepeerValue)}>Call</button>
+								<div>
+									<h1 style={{ color: "white" }}>My Video</h1>
+									<video ref={localVideo} />
+								</div>
+								<div>
+									<h1 style={{ color: "white" }}>Partner Video</h1>
+									<video ref={remoteVideo} />
+								</div>
+							</div>
+						</div>
+					</div>
+					<div className='options'>
+						<div className='options__left'>
+							<div id='stopVideo' className='options__button'>
+								<i className='fa fa-video-camera' />
+							</div>
+							<div id='muteButton' className='options__button'>
+								<i className='fa fa-microphone' />
+							</div>
+							<div id='showChat' className='options__button'>
+								<i className='fa fa-comment' />
+							</div>
+						</div>
+						<div className='options__right'>
+							<div id='inviteButton' className='options__button'>
+								<i className='fas fa-user-plus' />
+							</div>
+						</div>
+					</div>
+				</div>
+				<div className='main__right'>
+					<div className='main__chat_window'>
+						<div className='messages'></div>
+					</div>
+					<div className='main__message_container'>
+						<input
+							id='chat_message'
+							type='text'
+							autoComplete='off'
+							placeholder='Type message here...'
+						/>
+						<div id='send' className='options__button'>
+							<i className='fa fa-plus' aria-hidden='true' />
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+
+
+
+
+	// const call = (remotePeerId, stream) => {
+	// 	var call = currentPeerRef.current.call(remotePeerId, stream);
+	// 	call.on("stream", function (remoteStream) {
+	// 		setRemoteStreams((prevStreams) => [...prevStreams, remoteStream]);
+	// 	});
+	// };
+
+	// const Video = ({ stream }) => {
+	// 	const videoRef = useRef();
+
+	// 	useEffect(() => {
+	// 		videoRef.current.srcObject = stream;
+	// 		videoRef.current.play();
+	// 	}, [stream]);
+
+	// 	return (
+	// 		<div>
+	// 			<h1 style={{ color: "white" }}>Partner Video {stream.id}</h1>
+	// 			<video ref={videoRef} />
+	// 		</div>
+	// 	);
+	// };
+
+	// function handleVideoRef(videoRef, stream) {
+	// 	if (videoRef) {
+	// 		videoRef.srcObject = stream;
+	// 	}
+	// }
+
+
+
+	// setConnectedUsers((users) => [
+						// 	...users,
+						// 	{ peerId, name: username, stream: remoteStream },
+						// ]);
